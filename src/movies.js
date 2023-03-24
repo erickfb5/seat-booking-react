@@ -1,6 +1,12 @@
 export const movies = [
-  { title: "Avengers: Endgame", price: 10 },
-  { title: "Joker", price: 12 },
-  { title: "Toy Story 4", price: 8 },
-  { title: "The Lion King", price: 9 },
+  {
+    name: "Avengers: Endgame",
+    price: 10,
+    seats: [
+      [true, true, true, false, true, true, true, true],
+      [true, true, true, true, false, true, true, true],
+      [true, true, true, true, true, true, false, true],
+      [true, true, true, true, false, true, true, true],
+    ],
+  },
 ];

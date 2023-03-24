@@ -1,87 +1,74 @@
-import { useState, useEffect } from "react";
-import "./App.css";
-import { movies } from "./movies";
+import React, { useState, useEffect } from 'react';
+import {movies} from './movies';
+import './App.css';
 
 function App() {
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [selectedMovie, setSelectedMovie] = useState(0);
-  const [seatCount, setSeatCount] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0);
+  const [selectedMovieIndex, setSelectedMovieIndex] = useState(localStorage.getItem('selectedMovieIndex') || 0);
+  const [selectedMoviePrice, setSelectedMoviePrice] = useState(localStorage.getItem('selectedMoviePrice') || 10);
 
   useEffect(() => {
-    const selectedSeatsData = JSON.parse(localStorage.getItem("selectedSeats"));
-    const selectedMovieData = JSON.parse(localStorage.getItem("selectedMovie"));
-    if (selectedSeatsData) {
-      setSelectedSeats(selectedSeatsData);
-    }
-    if (selectedMovieData) {
-      setSelectedMovie(selectedMovieData);
-    }
-  }, []);
+    localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
+  }, [selectedSeats]);
 
   useEffect(() => {
-    localStorage.setItem("selectedSeats", JSON.stringify(selectedSeats));
-    localStorage.setItem("selectedMovie", JSON.stringify(selectedMovie));
-    setSeatCount(selectedSeats.length);
-    setTotalPrice(selectedSeats.length * movies[selectedMovie].price);
-  }, [selectedSeats, selectedMovie]);
+    localStorage.setItem('selectedMovieIndex', selectedMovieIndex);
+    localStorage.setItem('selectedMoviePrice', selectedMoviePrice);
+  }, [selectedMovieIndex, selectedMoviePrice]);
 
   const handleSeatClick = (index) => {
-    if (selectedSeats.includes(index)) {
-      setSelectedSeats(
-        selectedSeats.filter((seatIndex) => seatIndex !== index)
-      );
+    const seatIndex = selectedSeats.indexOf(index);
+
+    if (seatIndex > -1) {
+      setSelectedSeats([...selectedSeats.slice(0, seatIndex), ...selectedSeats.slice(seatIndex + 1)]);
     } else {
       setSelectedSeats([...selectedSeats, index]);
     }
   };
 
-  const handleMovieSelect = (e) => {
-    setSelectedMovie(e.target.value);
-  };
-
-  const handleResetClick = () => {
-    setSelectedSeats([]);
-    setSelectedMovie(0);
+  const handleMovieChange = (e) => {
+    setSelectedMovieIndex(e.target.selectedIndex);
+    setSelectedMoviePrice(e.target.value);
   };
 
   return (
-    <div className="app">
+    <div className="App">
       <div className="movie-container">
         <label>Pick a movie</label>
-        <select id="movie" value={selectedMovie} onChange={handleMovieSelect}>
+        <select value={selectedMoviePrice} onChange={handleMovieChange}>
           {movies.map((movie, index) => (
-            <option key={index} value={index}>
-              {movie.title} (${movie.price})
+            <option key={index} value={movie.price}>
+              {movie.name} (${movie.price})
             </option>
           ))}
         </select>
       </div>
 
-      <div className="showcase">
-        <div className="seat"></div>
-        <small>N/A</small>
-
-        <div className="seat selected"></div>
-        <small>Selected</small>
-
-        <div className="seat occupied"></div>
-        <small>Occupied</small>
-      </div>
+      <ul className="showcase">
+        <li>
+          <div className="seat"></div>
+          <small>N/A</small>
+        </li>
+        <li>
+          <div className="seat selected"></div>
+          <small>Selected</small>
+        </li>
+        <li>
+          <div className="seat occupied"></div>
+          <small>Occupied</small>
+        </li>
+      </ul>
 
       <div className="container">
         <div className="screen"></div>
-        {movies[selectedMovie].seats.map((row, rowIndex) => (
-          <div key={rowIndex} className="row">
+
+        {movies[selectedMovieIndex].seats.map((row, rowIndex) => (
+          <div className="row" key={rowIndex}>
             {row.map((seat, seatIndex) => (
               <div
+                className={`seat ${seat ? '' : 'occupied'} ${selectedSeats.includes(rowIndex * row.length + seatIndex) ? 'selected' : ''}`}
                 key={seatIndex}
-                className={`seat ${
-                  seat === "0" ? "" : seat === "1" ? "selected" : "occupied"
-                }`}
-                onClick={() =>
-                  handleSeatClick(rowIndex * row.length + seatIndex)
-                }
+                onClick={() => handleSeatClick(rowIndex * row.length + seatIndex)}
               ></div>
             ))}
           </div>
@@ -89,13 +76,10 @@ function App() {
       </div>
 
       <p className="text">
-        You have selected <span id="count">{seatCount}</span> seats for a price
-        of $<span id="total">{totalPrice}</span>
+        You have selected <span id="count">{selectedSeats.length}</span> seats for a price of $<span id="total">{selectedSeats.length * selectedMoviePrice}</span>
       </p>
 
-      <button type="reset" id="button" onClick={handleResetClick}>
-        Reset
-      </button>
+      <button type="reset" onClick={() => setSelectedSeats([])}>Reset</button>
     </div>
   );
 }
